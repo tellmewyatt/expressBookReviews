@@ -55,7 +55,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     }else {
       let lastKey = 0
       if(keys.length > 0) {
-        lastKey = keys[keys.length - 1]
+        lastKey = parseInt(keys[keys.length - 1])
       }
       const newKey = lastKey + 1;
       book.reviews[newKey] = content
@@ -64,7 +64,22 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   }
   else return res.status(404).json({message: "Error! No Book exists at that isbn"})
 });
-
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  const book = books[req.params.isbn]
+  const username = req.session.authorization.username
+  if(book) {
+    const keys = Object.keys(book.reviews)
+    const key = keys.find(k => book.reviews[k].username === username)
+    console.log(keys, key)
+    if(key) {
+      const review = book.reviews[key]
+      delete book.reviews[key]
+      res.status(200).json({message: `Successfully deleted your review of ${req.params.isbn} `})
+    }
+    else return res.status(404).json({message: `Error! No review for user ${username} for book ${req.params.isbn}`})
+  }
+  else return res.status(404).json({message: `Error! No Book exists at ISBN ${req.params.isbn} `})
+})
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
 module.exports.users = users;
